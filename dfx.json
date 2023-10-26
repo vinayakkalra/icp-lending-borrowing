@@ -1,0 +1,30 @@
+{
+  "canisters": {
+    "lend_backend": {
+      "candid": "src/lend_backend/lend_backend.did",
+      "package": "lend_backend",
+      "type": "rust"
+    },
+    "lend_frontend": {
+      "dependencies": [
+        "lend_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/lend_frontend/src/index.html"
+      },
+      "source": [
+        "src/lend_frontend/assets",
+        "dist/lend_frontend/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
