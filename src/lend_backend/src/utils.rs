@@ -1,72 +1,30 @@
-use candid::{CandidType, Nat, Principal};
+use candid::{CandidType, Decode, Encode};
+use ic_storage::IcStorage;
+use exchange_rates_canister::{ExchangeRatesCanister, get_exchange_rate};
 
-pub type LenderId = u32;
-
-#[allow(non_snake_case)]
-#[derive(CandidType, Clone)]
-pub struct Lender {
-    pub id: LenderId,
-    pub owner: Principal,
-    pub from: Principal,
-    pub fromAmount: Nat,
-    pub to: Principal,
-    pub toAmount: Nat,
+pub struct UtilsContract {
+    storage: IcStorage,
 }
 
-#[derive(CandidType)]
-pub struct Borrower {
-    pub id: BorrowerId,
-    pub owner: Principal,
-    pub from: Principal,
-    pub fromAmount: Nat,
-    pub to: Principal,
-    pub toAmount: Nat,
-}
+impl UtilsContract {
+    pub fn new() -> UtilsContract {
+        UtilsContract {
+            storage: IcStorage::new(),
+        }
+    }
 
-#[derive(CandidType)]
-pub struct Balance {
-    pub owner: Principal,
-    pub token: Principal,
-    pub amount: Nat,
-}
+    pub fn calculate_interest_rate(&self, amount: u64, interest_rate: u64, term: u64) -> u64 {
+        (amount * interest_rate * term) / 365
+    }
 
-pub type CancelReceipt = Result<LenderId, CancelErr>;
+    pub fn convert_tokens(&self, from_token: String, to_token: String, amount: u64) -> Result<u64, String> {
+        let from_token_exchange_rate = get_exchange_rate(from_token.clone())?;
+        let to_token_exchange_rate = get_exchange_rate(to_token.clone())?;
 
-#[derive(CandidType)]
-pub enum CancelErr {
-    NotAllowed,
-    NotExistingOrder,
-}
+        let converted_amount = (amount * to_token_exchange_rate) / from_token_exchange_rate;
 
+        Ok(converted_amount)
+    }
 
-pub type DepositReceipt = Result<Nat, DepositErr>;
-
-#[derive(CandidType)]
-pub enum DepositErr {
-    BalanceLow,
-    TransferFailure,
-}
-
-pub type LendReceipt = Result<Option<Token>, LendErr>;
-
-#[derive(CandidType)]
-pub enum LendErr {
-    InvalidLenderId,
-    InvalidToken,
-}
-
-pub type BorrowReceipt = Result<Option<Token>, BorrowErr>;
-
-#[derive(CandidType)]
-pub enum BorrowErr {
-    InvalidBorrowerId,
-    InvalidToken,
-}
-
-pub type WithdrawReceipt = Result<Nat, WithdrawErr>;
-
-#[derive(CandidType)]
-pub enum WithdrawErr {
-    BalanceLow,
-    TransferFailure,
+    // ... Other functions ...to be decided
 }
